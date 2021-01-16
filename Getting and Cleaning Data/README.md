@@ -2,7 +2,7 @@
 title: "README"
 author: "Tianming"
 date: "1/15/2021"
-output: html_document
+
 ---
 ## Getting and Cleaning Data Project
 Submitter: Tianming Wu
