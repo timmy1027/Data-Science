@@ -5,7 +5,7 @@ date: "1/15/2021"
 
 ---
 ## Getting and Cleaning Data Project
-Submitter: Tianming Wu$
+Submitter: Tianming Wu<br />
 Data Zip File Location: [UC Irvine Repo](https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip "Clicking will download the data")
 
 ## Project Requirement
