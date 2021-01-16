@@ -39,15 +39,34 @@ colnames(testSubjects) <- "SubjectIndex"
 test <- cbind(testSubjects, testActivities, testMeasured )
 
 ## merge test and train datasets
-mered <- rbind(train, test)
+merged <- rbind(train, test)
 
 
-mered$classLabels <- gsub("1", "WALKING", mered$classLabels)
-mered$classLabels <- gsub("2", "WALKING_UPSTAIRS", mered$classLabels)
-mered$classLabels <- gsub("3", "WALKING_DOWNSTAIRS", mered$classLabels)
-mered$classLabels <- gsub("4", "SITTING", mered$classLabels)
-mered$classLabels <- gsub("5", "STANDING", mered$classLabels)
-mered$classLabels <- gsub("6", "LAYING", mered$classLabels)
+merged$classLabels <- gsub("1", "WALKING", merged$classLabels)
+merged$classLabels <- gsub("2", "WALKING_UPSTAIRS", merged$classLabels)
+merged$classLabels <- gsub("3", "WALKING_DOWNSTAIRS", merged$classLabels)
+merged$classLabels <- gsub("4", "SITTING", merged$classLabels)
+merged$classLabels <- gsub("5", "STANDING", merged$classLabels)
+merged$classLabels <- gsub("6", "LAYING", merged$classLabels)
+
+colnames(merged)[2] <- "Activities"
+
+## reshape the merged data set
+library(reshape2)
+
+merged_melt <- melt(merged, id = c("SubjectIndex", "Activities"))
+tidy <- dcast(merged_melt, SubjectIndex + Activities ~ variable, mean)
+
+
+## save final result
+write.table(tidy, "tidy.txt", sep = "\t", col.names = T, row.names = F)
+
+
+
+
+
+
+
 
 
 
