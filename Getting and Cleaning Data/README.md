@@ -2,11 +2,10 @@
 title: "README"
 author: "Tianming"
 date: "1/15/2021"
-output: html_document
+
 ---
-# Getting and Cleaning Data Project
-Submitter: Tianming Wu
-Blog Post: [Getting and Cleaning Data Review](https://medium.com/@GalarnykMichael/review-course-1-the-data-scientists-toolbox-jhu-coursera-4d7459458821#.5jpg133ln 
+## Getting and Cleaning Data Project
+Submitter: Tianming Wu<br />
 Data Zip File Location: [UC Irvine Repo](https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip "Clicking will download the data")
 
 ## Project Requirement
