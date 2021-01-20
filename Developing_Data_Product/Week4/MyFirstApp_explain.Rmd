@@ -1,0 +1,27 @@
+---
+title: "MyFirstApp"
+author: Tianming
+date: Jan 19, 2021
+output: ioslides_presentation
+---
+
+## My Shiny Applicatoin
+3 navigation tabs at the top:
+  Analysis<br />
+  Appendix<br />
+  My github link<br />
+
+## Sidebar choices
+You can choose x and/or y axis given the variables in mtcars data frame<br />
+If checkbox is selected, you will see a fitted line<br />
+
+## Plotly interactive plot
+In main panel, choose "PLOT"<br />
+The scatter plot is interactive, you can select single or a group of data points<br />
+
+
+## Regression Summary
+In main panel, choose "REGRESSION"<br />
+The lm mode given chosen x and y is summarized
+
+
