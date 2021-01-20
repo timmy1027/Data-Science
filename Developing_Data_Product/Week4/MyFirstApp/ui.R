@@ -1,54 +1,64 @@
 library(shiny)
+library(shinythemes)
+library(plotly)
 
 shinyUI(
-    navbarPage("Shiny Application",
+    navbarPage("Week4 Project",
                tabPanel("Analysis",
                         fluidPage(
-                            titlePanel("The relationship between variables and miles per gallon (MPG)"),
+                            theme = shinytheme("sandstone"),
+                            # Add title to current panel
+                            titlePanel("Analysis of mtcars dataset by Tianming"),
+                            # Sidebar layout with input and output definitions
                             sidebarLayout(
                                 sidebarPanel(
-                                    selectInput("variable", "Variable:",
-                                                c("Number of cylinders" = "cyl",
-                                                  "Displacement (cu.in.)" = "disp",
-                                                  "Gross horsepower" = "hp",
-                                                  "Rear axle ratio" = "drat",
-                                                  "Weight (lb/1000)" = "wt",
-                                                  "1/4 mile time" = "qsec",
-                                                  "V/S" = "vs",
-                                                  "Transmission" = "am",
-                                                  "Number of forward gears" = "gear",
-                                                  "Number of carburetors" = "carb"
-                                                )),
+                                    h3("Plotting"),
+                                    # Select variable for y-axis
+                                    selectInput(inputId = "y",
+                                                label = "Y-axis:",
+                                                choices = c("Miles/(US) gallon" = "mpg",
+                                                            "Weight(1000 lbs)" = "wt",
+                                                            "1/4 mile time" = "qsec"),
+                                                selected = "mpg"),
+                                    # Select variable for x-axis
+                                    selectInput(inputId = "x",
+                                                label = "Scatterplot X-axis",
+                                                choices = c("Number of cylinders" = "cyl",
+                                                          "Number of carburetors" = "carb",
+                                                          "Rear axie ratio" = "drat"),
+                                                selected = "cyl"
+                                                ),
                                     
-                                    checkboxInput("outliers", "Show BoxPlot's outliers", FALSE)
-                                ),
+                                    checkboxInput("fit", "Add best fit line to Scatterplot", TRUE)
+                                            ),
+                               
                                 
+                                # Output panel
                                 mainPanel(
-                                    h3(textOutput("caption")),
+                                    tabsetPanel(type = "tabs",
+                                    #Tab 1 plot
+                                    tabPanel(title = "Plots",
+                                    h3("Scatterplot"),
+                                    plotlyOutput(outputId = "scatterplot"),
+                                    textOutput(outputId = "description"),
+                                    ),
                                     
-                                    tabsetPanel(type = "tabs", 
-                                                tabPanel("BoxPlot", plotOutput("mpgBoxPlot")),
-                                                tabPanel("Regression model", 
-                                                         plotOutput("mpgPlot"),
-                                                         verbatimTextOutput("fit")
+                                    #Tab 2 Regression
+                                    tabPanel(title = "Regression",
+                                    h3("Simple Linear Regression Summary"),
+                                    h4("regression mode = lm"),
+                                    textOutput(outputId = "descriptionreg"),
+                                    verbatimTextOutput(outputId = "lmoutput")
+                                            )
+                                        )
                                                 )
+                                            )
                                     )
-                                )
-                            )
-                        )
-               ),
-               tabPanel("About the Data Set",
-                        
-                        h3("Regression Models Course Project (from Coursera)"),
-                        helpText("You work for Motor Trend, a magazine about the automobile industry Looking at a data set of a collection of cars, they are interested in exploring the relationship",
-                                 "between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions: Is an automatic or manual transmission better for MPG. Quantify the MPG difference between automatic and manual transmissions"),
-                        h3("Important"),
-                        p("A data frame with 32 observations on 11 variables."),
-                        
-                        a("https://class.coursera.org/regmods-008")
-               ),
-               tabPanel("More Data Detail",
-                        h2("Motor Trend Car Road Tests"),
+                                ),
+
+               
+               tabPanel("Appendix",
+                        h2("dataset: mtcars"),
                         hr(),
                         h3("Description"),
                         helpText("The data was extracted from the 1974 Motor Trend US magazine,",
@@ -69,15 +79,17 @@ shinyUI(
                         p("  [,10]	 gear	 Number of forward gears"),
                         p("  [,11]	 carb	 Number of carburetors"),
                         
+                        h3("Note"),
+                        p("Henderson and Velleman (1981) comment in a footnote to Table 1: ‘Hocking [original transcriber]'s noncrucial coding of the Mazda's rotary engine as a straight six-cylinder engine and the Porsche's flat engine as a V engine, as well as the inclusion of the diesel Mercedes 240D, have been retained to enable direct comparisons to be made with previous analyses."),
+                        
                         h3("Source"),
                         
                         p("Henderson and Velleman (1981), Building multiple regression models interactively. Biometrics, 37, 391-411.")
-               ),
-               tabPanel("Go back to my Github repository",
-                        a("https://github.com/manastiwari/Developing-Data-Products-Week-4-Course-Project"),
+                        ),
+               tabPanel("Github repository Page",
+                        a("https://github.com/timmy1027/Data-Science/tree/master/Developing_Data_Product/Week4"),
                         hr(),
-                        h4("I hope you like the Shiny App"),
-                        h4("The name of the repository is Developing Data Products Week 4 Course Project")
-               )
+                        h4("Thanks")
+                        )
     )
 )
