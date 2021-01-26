@@ -1,0 +1,183 @@
+---
+title: "Milestone Report"
+author: "Tianming"
+date: "1/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Required packages
+```{r chunk1}
+start <- Sys.time()
+suppressMessages(library(tm))
+suppressMessages(library(data.table))
+suppressMessages(library(ngram))
+suppressMessages(library(dplyr))
+suppressMessages(library(tidytext))
+suppressMessages(library(SnowballC))
+suppressMessages(library(wordcloud))
+suppressMessages(library(tidyr))
+suppressMessages(library(stringi))
+suppressMessages(library(ggplot2))
+```
+
+
+
+```{r}
+sample.dir <- "./final/en_US/sample_5pct/"
+
+sample.5pct <- VCorpus(DirSource(sample.dir))
+rm(sample.dir)
+
+```
+
+```{r}
+# convert to lower cases
+corpus <- tm_map(sample.5pct, content_transformer(tolower))
+
+# remove Urls
+removeUrl <- function(x) gsub("http[^[:space:]]*", "", x)
+corpus <- tm_map(corpus, content_transformer(removeUrl))
+
+# remove anything other than English letters or space
+removeNumPunct <- function(x) gsub("[^[:alpha:][:space:]]*", "", x)
+corpus <- tm_map(corpus, content_transformer(removeNumPunct))
+
+# remove what would be emojis
+corpus <- tm_map(corpus, content_transformer(gsub), pattern = "\\W", replace = " ")
+
+# remove extra white space
+corpus <- tm_map(corpus, stripWhitespace)
+
+# remove stop words
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+
+# remove punctuations
+corpus <- tm_map(corpus, removePunctuation)
+
+# remove numbers
+corpus <- tm_map(corpus, removeNumbers)
+
+# remove profanity
+profanity <- read.table("./final/en_US/list.txt", header = F, sep = "\n")
+corpus <- tm_map(corpus, removeWords, profanity$V1)
+```
+
+```{r}
+corpus_blog <- tibble(text = corpus[["blogs_sample.txt"]][["content"]], source = "blog")
+corpus_news <- tibble(text = corpus[["news_sample.txt"]][["content"]], source = "news")
+corpus_twitter <- tibble(text = corpus[["twitters_sample.txt"]][["content"]], source = "twitter")
+
+clean_sample <- bind_rows(corpus_blog, corpus_news, corpus_twitter)
+clean_sample$source <- as.factor(clean_sample$source)
+rm(profanity, corpus_blog, corpus_news, corpus_twitter)
+```
+
+## n-grams tokenization, see [renference](https://www.tidytextmining.com/ngrams.html)
+```{r}
+unigram <- clean_sample %>%
+  unnest_tokens(word, text)
+
+unigram_repo <- unigram %>%
+  count(word) %>%
+  arrange(desc(n)) %>%
+  filter(n > 1)
+
+
+bigrams <- clean_sample %>%
+  unnest_tokens(bigram, text, token = "ngrams", n=2)
+
+trigrams <-  clean_sample %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3)
+
+quadgrams <- clean_sample %>%
+  unnest_tokens(quadgram, text, token = "ngrams", n = 4)
+```
+
+
+## Analysis the tokens
+### n-gram = 2 top 25 2-words
+```{r}
+bigram_repo <- bigrams %>%
+  count(bigram) %>%
+  drop_na(bigram) %>%
+  filter(n > 1) %>% # Reduce n-gram files
+  arrange(desc(n))
+
+bigrams_separated <- bigram_repo %>%
+  separate(bigram, c("word1", "word2", sep = " ")) %>%
+  select_if(~sum(!is.na(.)) > 0)
+
+# Top 10 2-gram words
+bigrams_separated[1:10, ]
+
+# Top 25 two-words token
+bigram_repo %>%
+  top_n(25, n) %>%
+  mutate(bigram = reorder(bigram, n)) %>%
+  ggplot(aes(x = n, y = bigram)) + geom_col()
+
+```
+
+### n-gram = 3. Top 25 3-words
+```{r}
+trigram_repo <- trigrams %>%
+  count(trigram) %>%
+  drop_na(trigram) %>%
+  filter(n > 1) %>% # Reduce n-gram files
+  arrange(desc(n))
+
+trigrams_separated <- trigram_repo %>%
+  separate(trigram, c("word1", "word2", "word3", sep = " ")) %>%
+  select_if(~sum(!is.na(.)) > 0)
+
+# Top 10 3-gram words
+trigrams_separated[1:10, ]
+# Top 25 tjree-words token
+trigram_repo %>%
+  top_n(25, n) %>%
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x = n, y = trigram)) + geom_col()
+
+```
+
+### n-gram = 4 top 25 4-words
+```{r}
+
+quadgram_repo <- quadgrams %>%
+  count(quadgram) %>%
+  drop_na(quadgram) %>%
+  filter(n >= 1) %>% # Reduce n-gram files
+  arrange(desc(n))
+
+quadgram_separated <- quadgram_repo %>%
+  separate(quadgram, c("word1", "word2", "word3", "word4", sep = " ")) %>%
+  select_if(~sum(!is.na(.)) > 0)
+
+# Top 10 3-gram words
+quadgram_separated[1:10, ]
+# Top 25 tjree-words token
+quadgram_repo %>%
+  top_n(25, n) %>%
+  mutate(quadgram = reorder(quadgram, n)) %>%
+  ggplot(aes(x = n, y = quadgram)) + geom_col()
+```
+
+## Save n-gram files
+```{r}
+saveRDS(unigram_repo, "./final/en_US/dictionary_5pct/uni_words.rds")
+saveRDS(bigrams_separated, "./final/en_US/dictionary_5pct/bi_words.rds")
+saveRDS(trigrams_separated, "./final/en_US/dictionary_5pct/tri_words.rds")
+saveRDS(quadgram_separated, "./final/en_US/dictionary_5pct/quad_words.rds")
+end <- Sys.time()
+end - start
+```
+
+## SessionInfo
+```{r}
+sessionInfo()
+```
+

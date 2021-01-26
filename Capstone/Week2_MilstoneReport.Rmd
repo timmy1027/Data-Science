@@ -1,0 +1,249 @@
+---
+title: "Week2 - Milestone Report"
+author: "Tianming"
+date: "1/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+For markdown writing, credit to [reference](https://guides.github.com/features/mastering-markdown/)
+
+# **Getting the data**
+## Load the [data](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip)
+To save knitting time, I downloaded the data manually
+```{r}
+start <- Sys.time()
+enUSnews.path <- "./final/en_US/en_US.news.txt"
+enUStwitter.path <- "./final/en_US/en_US.twitter.txt"
+enUSblogs.path <- "./final/en_US/en_US.blogs.txt"
+
+enUSnews <- readLines(enUSnews.path, skipNul = TRUE)
+enUStwitter <- readLines(enUStwitter.path, skipNul = TRUE)
+enUSblogs <- readLines(enUSblogs.path, skipNul = TRUE)
+```
+
+## Check file sizes in Mb
+```{r}
+news.info <- file.info(enUSnews.path)
+twitter.info <- file.info(enUStwitter.path)
+blog.info <- file.info(enUSblogs.path)
+
+news.Mb <- round(news.info$size/1024^2)
+twitters.Mb <- round(twitter.info$size/1024^2)
+blogs.Mb <- round(blog.info$size/1024^2)
+
+data.frame(news_Mb = news.Mb, twitters_Mb = twitters.Mb, blogs_Mb = blogs.Mb)
+```
+
+
+## Number of lines in each file
+```{r}
+news.lines <- length(enUSnews)
+twitters.lines <- length(enUStwitter)
+blogs.lines <- length(enUSblogs)
+data.frame(news_line = news.lines,
+           twitters_line = twitters.lines,
+           blogs_line = blogs.lines)
+```
+
+## Number of characters per line
+```{r}
+news.nchar <- nchar(enUSnews)
+twitter.nchar <- nchar(enUStwitter)
+blog.nchar <- nchar(enUSblogs)
+boxplot(log2(news.nchar), log2(twitter.nchar), log2(blog.nchar),
+        ylab = "nchar per line in log2 transform",
+        names = c("news", "twitters", "blogs"),
+        main = "en_US_dataset")
+```
+## Total characters per file
+```{r}
+news.nchar.sum <- sum(nchar(enUSnews))
+twitter.nchar.sum <- sum(nchar(enUStwitter))
+blog.nchar.sum <- sum(nchar(enUSblogs))
+data.frame(news_nchar_sum = news.nchar.sum,
+           twitter_nchar_sum = twitter.nchar.sum,
+           blog_nchar_sum = blog.nchar.sum)
+```
+
+## Number of total words in each file
+```{r}
+suppressMessages(library(ngram))
+news.words <- wordcount(enUSnews, sep = " ")
+twitters.words <- wordcount(enUStwitter, sep = " ")
+blogs.words <- wordcount(enUSblogs, sep = " ")
+
+data.frame(news_words = news.words,
+           twitters_words = twitters.words,
+           blogs_words = blogs.words)
+```
+
+## Summarize above stats
+```{r}
+
+enUSsumm <- data.frame(file_names = c("news", "twitters", "blogs"),
+                       file_size = c(news.Mb, twitters.Mb, blogs.Mb),
+                       file_lines = c(news.lines, twitters.lines, blogs.lines),
+                       n_character = c(news.nchar.sum, twitter.nchar.sum, blog.nchar.sum),
+                       n_words = c(news.words, twitters.words, blogs.words)
+                       )
+
+# Add stats columns
+suppressMessages(library(dplyr))
+enUSsumm <- enUSsumm %>% mutate(pct_n_character = round(n_character/sum(n_character), 2))
+enUSsumm <- enUSsumm %>% mutate(pct_n_words = round(n_words/sum(n_words), 2))
+enUSsumm
+```
+
+## Fractionize 5% of the raw files
+```{r}
+frac = 0.05
+set.seed(2021)
+
+news.sample <- sample(enUSnews, round(news.lines * frac))
+twitters.sample <- sample(enUStwitter, round(news.lines * frac))
+blogs.sample <- sample(enUSblogs, round(news.lines * frac))
+
+combined.sample <- c(news.sample, twitters.sample, blogs.sample)
+```
+
+## Save the sampled files
+```{r}
+writeLines(news.sample, "./final/en_US/en_US.news.sample.txt")
+writeLines(twitters.sample, "./final/en_US/en_US.twitters.sample.txt")
+writeLines(blogs.sample, "./final/en_US/en_US.blogs.sample.txt")
+writeLines(combined.sample, "./final/en_US/en_US.combined.sample.txt")
+```
+
+
+# **Cleaning the data**
+
+## Clean the combined sample data using [tm](https://towardsdatascience.com/understanding-and-writing-your-first-text-mining-script-with-r-c74a7efbe30f)
+```{r}
+suppressMessages(library(tm))
+combined.sample.clean <- Corpus(VectorSource(combined.sample))
+```
+
+
+
+## Remove URLs,emojis,non-english words,punctuations,numbers,whitespace, stop words and [profanity](https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt).
+```{r, results='hide'}
+# convert to lower cases
+combined.sample.clean <- tm_map(combined.sample.clean, content_transformer(tolower))
+
+# remove Urls
+removeUrl <- function(x) gsub("http[^[:space:]]*", "", x)
+combined.sample.clean <- tm_map(combined.sample.clean, content_transformer(removeUrl))
+
+# remove anything other than English letters or space
+removeNumPunct <- function(x) gsub("[^[:alpha:][:space:]]*", "", x)
+combined.sample.clean <- tm_map(combined.sample.clean, content_transformer(removeNumPunct))
+
+# remove what would be emojis
+combined.sample.clean <- tm_map(combined.sample.clean, content_transformer(gsub), pattern = "\\W", replace = " ")
+
+# remove extra white space
+combined.sample.clean <- tm_map(combined.sample.clean, stripWhitespace)
+
+# remove stop words
+combined.sample.clean <- tm_map(combined.sample.clean, removeWords, stopwords("english"))
+
+# remove punctuations
+combined.sample.clean <- tm_map(combined.sample.clean, removePunctuation)
+
+# remove numbers
+combined.sample.clean <- tm_map(combined.sample.clean, removeNumbers)
+
+# remove profanity
+profanity <- read.table("./final/en_US/list.txt", header = F, sep = "\n")
+combined.sample.clean <- tm_map(combined.sample.clean, removeWords, profanity$V1)
+```
+
+## Save clean Corpus
+```{r}
+saveRDS(combined.sample.clean, file = "./final/en_US/clean_sample.rds")
+```
+
+
+# **Exploratory Data Analysis**
+
+## To analyze the textual data, we need a Document-Term Matrix (DTM) format: documents are as the rows, terms/words as the columns, frequency of the term in the document as the entries.
+```{r}
+sample.clean <- readRDS("./final/en_US/clean_sample.rds")
+sample.clean.dtm <- DocumentTermMatrix(sample.clean)
+sample.clean.dtm
+
+inspect(sample.clean.dtm[100:105, 100:105])
+```
+
+## To reduce the dimension of DTM, remove the less frequent terms such that the sparsity is less than 0.95
+```{r}
+sample.clean.dtm <- removeSparseTerms(sample.clean.dtm, sparse = 0.99)
+inspect(sample.clean.dtm[100:105, 100:105])
+```
+
+## Most frequent and least frequent words
+```{r}
+suppressMessages(library(data.table))
+freq <- data.frame(sort(colSums(as.matrix(sample.clean.dtm)), decreasing = TRUE))
+colnames(freq) <- "counts"
+freq$words <- rownames(freq)
+rownames(freq) <- NULL
+# 10 most frequent words
+head(freq, 10)
+# 10 least frequent words
+tail(freq, 10)
+```
+
+## Plot a simple word cloud
+```{r}
+suppressMessages(library(SnowballC))
+suppressMessages(library(wordcloud))
+
+wordcloud(freq$words, freq$counts, max.words = 100, colors = brewer.pal(1, "Accent"),
+          random.order = FALSE)
+```
+
+## Plot most frequent words
+```{r}
+suppressMessages(library(ggplot2))
+
+ggplot(freq[freq$counts > 7000, ], aes(x = reorder(words, -counts), y = counts)) + 
+         geom_bar(stat = "identity", fill = "steelblue") + 
+         labs(title = "Most frequent wrods (occurance > 7000)",
+          x = "words")
+```
+
+
+## Calculate time spent
+```{r}
+end <- Sys.time()
+ellapsed <- end - start
+```
+
+# Session Info
+```{r}
+sessionInfo()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

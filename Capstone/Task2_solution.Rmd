@@ -1,0 +1,124 @@
+---
+title: "Task2 - Exploratory Data Analysis - Solution"
+author: "Tianming"
+date: "1/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Required packages
+```{r}
+suppressMessages(library(tm))
+suppressMessages(library(data.table))
+suppressMessages(library(caret))
+suppressMessages(library(ngram))
+```
+
+## Load the data
+```{r}
+star <- Sys.time()
+enUSnews.path <- "./final/en_US/en_US.news.txt"
+enUStwitter.path <- "./final/en_US/en_US.twitter.txt"
+enUSblogs.path <- "./final/en_US/en_US.blogs.txt"
+
+enUSnews <- readLines(enUSnews.path, skipNul = TRUE)
+enUStwitter <- readLines(enUStwitter.path, skipNul = TRUE)
+enUSblogs <- readLines(enUSblogs.path, skipNul = TRUE)
+```
+
+## Check file sizes in Mb
+```{r}
+news.info <- file.info(enUSnews.path)
+twitter.info <- file.info(enUStwitter.path)
+blog.info <- file.info(enUSblogs.path)
+
+news.Mb <- round(news.info$size/1024^2)
+twitters.Mb <- round(twitter.info$size/1024^2)
+blogs.Mb <- round(blog.info$size/1024^2)
+
+data.frame(news_Mb = news.Mb, twitters_Mb = twitters.Mb, blogs_Mb = blogs.Mb)
+```
+
+
+## Number of lines in each file
+```{r}
+news.lines <- length(enUSnews)
+twitters.lines <- length(enUStwitter)
+blogs.lines <- length(enUSblogs)
+data.frame(news_line = news.lines,
+           twitters_line = twitters.lines,
+           blogs_line = blogs.lines)
+```
+
+## Number of characters per line
+```{r}
+news.nchar <- nchar(enUSnews)
+twitter.nchar <- nchar(enUStwitter)
+blog.nchar <- nchar(enUSblogs)
+boxplot(log2(news.nchar), log2(twitter.nchar), log2(blog.nchar),
+        ylab = "nchar per line in log2 transform",
+        names = c("news", "twitters", "blogs"),
+        main = "en_US_dataset")
+```
+
+## Total characters per file
+```{r}
+news.nchar.sum <- sum(nchar(enUSnews))
+twitter.nchar.sum <- sum(nchar(enUStwitter))
+blog.nchar.sum <- sum(nchar(enUSblogs))
+data.frame(news_nchar_sum = news.nchar.sum,
+           twitter_nchar_sum = twitter.nchar.sum,
+           blog_nchar_sum = blog.nchar.sum)
+```
+
+## Number of total words in each file
+```{r}
+suppressMessages(library(ngram))
+news.words <- wordcount(enUSnews, sep = " ")
+twitters.words <- wordcount(enUStwitter, sep = " ")
+blogs.words <- wordcount(enUSblogs, sep = " ")
+
+data.frame(news_words = news.words,
+           twitters_words = twitters.words,
+           blogs_words = blogs.words)
+```
+
+## Summarize above stats
+```{r}
+
+enUSsumm <- data.frame(file_names = c("news", "twitters", "blogs"),
+                       file_size = c(news.Mb, twitters.Mb, blogs.Mb),
+                       file_lines = c(news.lines, twitters.lines, blogs.lines),
+                       n_character = c(news.nchar.sum, twitter.nchar.sum, blog.nchar.sum),
+                       n_words = c(news.words, twitters.words, blogs.words)
+                       )
+
+# Add stats columns
+suppressMessages(library(dplyr))
+enUSsumm <- enUSsumm %>% mutate(pct_n_character = round(n_character/sum(n_character), 2))
+enUSsumm <- enUSsumm %>% mutate(pct_n_words = round(n_words/sum(n_words), 2))
+enUSsumm
+```
+
+## Load the (cleaned and sampled) Corpora data
+See Task1_solution for how-to details
+```{r}
+cleanData <- readRDS("./final/en_US/clean_sample.rds")
+cleanData.dtm <- DocumentTermMatrix(cleanData)
+cleanData.dtm <- removeSparseTerms(cleanData.dtm, sparse = 0.99)
+inspect(cleanData.dtm[100:105, 100:105])
+```
+
+
+```{r}
+head(Terms(cleanData.dtm), 10)
+colSums(as.matrix(cleanData.dtm))
+data.frame(sort(colSums(as.matrix(cleanData.dtm)), decreasing = TRUE))
+
+
+```
+
+

@@ -1,0 +1,82 @@
+---
+title: "quiz1"
+author: "Tianming"
+date: "1/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Q1.The en_US.blogs.txt | en_US.blogs.txt   file is how many megabytes?
+```{r}
+fileinfor <- file.info("./final/en_US/en_US.blogs.txt")
+fileinfor$size/1024.0^2
+```
+
+
+Q2.The en_US.twitter.txt has how many lines of text?
+```{r}
+enUStwitter <- "./final/en_US/en_US.twitter.txt"
+enUStwitter <- readLines(enUStwitter, skipNul = TRUE)
+length(enUStwitter)
+```
+
+
+Q3. What is the length of the longest line seen in any of the three en_US data sets?
+```{r}
+enUSnews <- "./final/en_US/en_US.news.txt"
+enUSnews <- readLines(enUSnews, skipNul = TRUE)
+enUSblogs <- "./final/en_US/en_US.blogs.txt"
+enUSblogs <- readLines(enUSblogs, skipNul = TRUE)
+
+max(nchar(enUStwitter))
+max(nchar(enUSblogs))
+max(nchar(enUSnews))
+```
+
+
+Q4. In the en_US twitter data set, if you divide the number of lines where the<br\>
+"love" (all lowercase) occurs by the number of lines the word "hate" (all lowercase)<br\>
+occurs, about what do you get?
+```{r}
+UStwitter.love <- grepl(".love.", enUStwitter)
+length(enUStwitter[UStwitter.love])
+
+UStwitter.hate <- grepl(".hate.", enUStwitter)
+length(enUStwitter[UStwitter.love])/length(enUStwitter[UStwitter.hate])
+```
+
+
+Q5. The one tweet in the en_US twitter data set that matches the word "biostats" says that?
+```{r}
+ enUStwitter[grepl("biostats", enUStwitter)]
+```
+
+
+Q6. How many tweets have the exact characters "A computer once beat me at chess, but it was <br\> no match for me at kickboxing". (i.e. the line matches those characters exactly.)
+```{r}
+table(grepl( "A computer once beat me at chess, but it was no match for me at kickboxing", enUStwitter))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
