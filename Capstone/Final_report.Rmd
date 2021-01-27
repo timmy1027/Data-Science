@@ -1,0 +1,33 @@
+---
+title: "Data Science Capstone Final Report"
+author: "Tianming"
+date: "1/26/2021"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data loading and cleaning
+```{r echo = FALSE, out.width= "100%"}
+knitr::include_graphics("./screenshort/Screen Shot 2021-01-26 at 3.39.05 AM.png")
+```
+
+## Tokenize the text using ngrams
+### This is an example of 2-gram words
+```{r echo = FALSE, out.width= "100%"}
+knitr::include_graphics("./screenshort/Screen Shot 2021-01-26 at 3.39.32 AM.png")
+```
+
+## Function to predict next word
+```{r echo = FALSE, out.width= "60%"}
+knitr::include_graphics("./screenshort/Screen Shot 2021-01-26 at 3.49.50 AM.png")
+knitr::include_graphics("./screenshort/Screen Shot 2021-01-26 at 3.50.20 AM.png")
+```
+
+
+## Shiny App product to predict the next word
+```{r echo = FALSE, out.width= "100%"}
+knitr::include_graphics("./screenshort/Screen Shot 2021-01-26 at 3.27.36 AM.png")
+```
